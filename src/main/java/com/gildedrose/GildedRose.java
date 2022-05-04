@@ -9,6 +9,7 @@ import static java.util.function.Predicate.not;
 public class GildedRose {
     public static final String AGED_BRIE = "Aged Brie";
     public static final String BACKSTAGE_PASSES = "Backstage passes to a TAFKAL80ETC concert";
+    public static final String CONJURED = "Conjured";
     public static final String SULFURAS = "Sulfuras, Hand of Ragnaros";
     public static final Integer MAX_VALUE_QUALITY = 50;
     private List<Item> items;
@@ -47,8 +48,9 @@ public class GildedRose {
     }
 
     private void decreaseQuality(Item item) {
+        var rate = isConjured(item.name) ? 2 : 1;
         if (item.quality > 0) {
-            item.quality -= 1;
+            item.quality -= 1 * rate;
         }
     }
 
@@ -71,6 +73,10 @@ public class GildedRose {
 
     private boolean isExpired(Item item) {
         return item.sellIn < 1;
+    }
+
+    private boolean isConjured(String name) {
+        return name.contains(CONJURED);
     }
 
     public List<Item> getItems() {
