@@ -48,7 +48,7 @@ public class StepDefinitions {
 
     @Then("^the inventory holds the following items$")
     public void the_inventory_holds_the_following_items(@Transpose List<Item> items) {
-        assertThat(gildedRose.items)
+        assertThat(gildedRose.getItems())
                 .usingRecursiveFieldByFieldElementComparator()
                 .containsOnly(toArray(items));
     }
