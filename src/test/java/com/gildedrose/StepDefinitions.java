@@ -1,29 +1,64 @@
 package com.gildedrose;
 
-import static org.junit.Assert.*;
-
+import io.cucumber.java.Before;
+import io.cucumber.java.DataTableType;
+import io.cucumber.java.Transpose;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 
+import java.util.List;
+import java.util.Map;
+
+import static java.lang.String.format;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.presentation.StandardRepresentation.registerFormatterForType;
+
 public class StepDefinitions {
-    private Item[] items = new Item[1];
-    private GildedRose app;
+    private GildedRose gildedRose;
 
-    @Given("The item as {string}")
-    public void initial_sellin_is_and_quality_is(String name) {
-        items[0] = new Item(name, 0, 0);
-        app = new GildedRose(items);
+    @DataTableType
+    public Item item(Map<String, String> entry) {
+        Item object = new Item(
+                entry.get("name"),
+                Integer.parseInt(entry.get("sellIn")),
+                Integer.parseInt(entry.get("quality"))
+        );
+        return object;
     }
 
-    @When("I update the quality")
-    public void i_update_the_quality() {
-        app.updateQuality();
+    @Before
+    public void setUp() {
+        registerFormatterForType(Item.class, this::formatItem);
     }
 
-    @Then("I should get item as {string}")
-    public void i_should_get_sellin_as_and_quality_as(String expected) {
-        assertEquals(expected, app.items[0].name);
+    @Given("I register the following items in the inventory")
+    public void i_register_the_following_items_in_the_inventory(@Transpose List<Item> items) {
+        assertThat(items).as("inventory items").isNotEmpty();
+        gildedRose = new GildedRose(toArray(items));
+    }
+
+    @When("{int} day(s) pass(es)")
+    public void day_passes(int days) {
+        assertThat(gildedRose).isNotNull();
+        for (int i = 0; i < days; ++i) {
+            gildedRose.updateQuality();
+        }
+    }
+
+    @Then("^the inventory holds the following items$")
+    public void the_inventory_holds_the_following_items(@Transpose List<Item> items) {
+        assertThat(gildedRose.items)
+                .usingRecursiveFieldByFieldElementComparator()
+                .containsOnly(toArray(items));
+    }
+
+    private String formatItem(Object object) {
+        Item item = (Item) object;
+        return format("(%s, sellIn=%d, quality=%d)", item.name, item.sellIn, item.quality);
+    }
+
+    private Item[] toArray(List<Item> items) {
+        return items.toArray(new Item[items.size()]);
     }
 }
-
